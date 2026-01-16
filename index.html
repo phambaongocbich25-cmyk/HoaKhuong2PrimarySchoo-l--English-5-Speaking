@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English 5 Speaking</title>
+
+<style>
+body{
+ font-family:"Comic Sans MS",Arial;
+ background:linear-gradient(135deg,#cfe9ff,#e3f2fd);
+ margin:0;padding:16px
+}
+.container{
+ max-width:1200px;margin:auto;
+ background:#fff;padding:26px;
+ border-radius:30px;
+ box-shadow:0 18px 45px rgba(0,0,0,.3)
+}
+h1{text-align:center;color:#0d47a1}
+.card{
+ background:#f5fbff;padding:18px;
+ margin-top:14px;border-radius:24px
+}
+input,select,textarea{
+ width:100%;padding:12px;
+ border-radius:14px;
+ border:2px solid #90caf9;margin-top:6px
+}
+button{
+ width:100%;padding:14px;
+ margin-top:10px;background:#1565c0;
+ color:#fff;border:none;border-radius:26px;
+ font-size:17px
+}
+.miss{
+ background:#ffebee;color:#b71c1c;
+ padding:8px 14px;border-radius:18px;
+ margin:6px;display:inline-block;
+ cursor:pointer;font-weight:bold
+}
+.star{font-size:36px;text-align:center}
+.certificate{
+ margin-top:28px;
+ padding:30px;
+ border:10px double #fbc02d;
+ border-radius:34px;
+ background:linear-gradient(#fffde7,#fff8e1);
+ text-align:center
+}
+.cert-title{
+ font-size:34px;
+ color:#d84315;
+ font-weight:bold
+}
+.cert-name{
+ font-size:30px;
+ color:#0d47a1;
+ font-weight:bold;
+ margin:12px 0
+}
+.cert-footer{
+ margin-top:16px;
+ font-size:18px;
+ font-weight:bold
+}
+.progress{
+ text-align:center;
+ margin-top:8px;
+ color:#0d47a1;
+ font-weight:bold
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎤 English 5 Speaking Practice</h1>
+
+<div class="card">
+<input id="studentName" placeholder="Student name">
+<input id="studentClass" placeholder="Class (5/1)">
+</div>
+
+<div class="card">
+<select id="mode">
+ <option value="unit">Speaking by Unit</option>
+ <option value="free">Free Speaking</option>
+</select>
+
+<select id="unit"></select>
+<p id="sample"></p>
+<button onclick="speak(sample.innerText)">🔊 Listen model</button>
+</div>
+
+<div class="card">
+<textarea id="studentText" rows="3"
+ placeholder="Press microphone and speak..."></textarea>
+<button onclick="start()">🎙 Start speaking</button>
+</div>
+
+<div class="card">
+<h3>🛠 Pronunciation correction</h3>
+<div id="fb"></div>
+<div id="stars" class="star"></div>
+<div id="progress" class="progress"></div>
+</div>
+
+<div id="cert"></div>
+
+<audio id="clap" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
+
+</div>
+
+<script>
+function speak(t){
+ let u=new SpeechSynthesisUtterance(t);
+ u.lang="en-GB";
+ u.rate=0.75;
+ u.pitch=1.1;
+ speechSynthesis.speak(u);
+}
+
+/* ===== 20 UNITS – NỘI DUNG GỘP ĐỦ ===== */
+const units={
+1:{text:"My name is Hoang. I am in Class 5. I live in the countryside. I like football and chicken."},
+2:{text:"I get up early. I go to school and study English every day."},
+3:{text:"I have English on Monday and Tuesday. I like it because it is interesting."},
+4:{text:"In my free time, I play badminton and watch cartoons."},
+5:{text:"I would like to be a teacher because I would like to teach children."},
+6:{text:"Go past the library. Turn left. The computer room is on the second floor."},
+7:{text:"My favourite food is noodles. I like milk and fruit."},
+8:{text:"Yesterday, I went to the zoo. I saw monkeys and elephants."},
+9:{text:"I will visit my grandparents this weekend."},
+10:{text:"I am reading a comic book. It is very funny."},
+11:{text:"The weather is sunny today. I wear a T-shirt."},
+12:{text:"My house is big. There is a living room and a kitchen."},
+13:{text:"I have a headache. I should take a rest."},
+14:{text:"I want to buy a blue dress at the market."},
+15:{text:"My favourite animal is a dog because it is friendly."},
+16:{text:"We had a school trip last month."},
+17:{text:"I usually help my parents at home."},
+18:{text:"I like watching cartoons in my free time."},
+19:{text:"I am going to be an engineer in the future."},
+20:{text:"English helps me communicate with people around the world."}
+};
+
+/* LOAD UNIT */
+const unitSel=document.getElementById("unit");
+Object.keys(units).forEach(u=>{
+ unitSel.innerHTML+=`<option value="${u}">Unit ${u}</option>`;
+});
+unitSel.onchange=()=>sample.innerText=units[unitSel.value].text;
+unitSel.onchange();
+
+/* SPEECH */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const r=new SR();
+r.lang="en-GB";
+
+function start(){r.start();}
+
+r.onresult=e=>{
+ let said=e.results[0][0].transcript.toLowerCase();
+ studentText.value=said;
+ fb.innerHTML="";
+ let errors=[];
+
+ if(mode.value==="free"){
+  if(said.includes("laiv")) errors.push("live");
+  if(said.includes("want to be")) errors.push("would like to be");
+  if(said.includes("no pass")) errors.push("go past");
+ }else{
+  let model=units[unitSel.value].text.toLowerCase();
+  model.split(" ").forEach(w=>{
+   if(!said.includes(w) && w.length>3) errors.push(w);
+  });
+ }
+
+ errors=[...new Set(errors)];
+
+ if(errors.length){
+  errors.forEach(w=>{
+   fb.innerHTML+=`<span class="miss" onclick="speak('${w}')">🔊 ${w}</span>`;
+  });
+ }else{
+  fb.innerHTML="✅ Excellent speaking! No mistakes.";
+ }
+
+ let star=errors.length===0?5:
+          errors.length<=2?4:
+          errors.length<=4?3:
+          errors.length<=6?2:1;
+
+ stars.innerText="⭐".repeat(star);
+ clap.play();
+ showCert(star);
+};
+
+/* CERTIFICATE */
+function showCert(star){
+ cert.innerHTML=`
+ <div class="certificate">
+  <div class="cert-title">CERTIFICATE OF ENGLISH SPEAKING</div>
+  <p>This certificate is proudly presented to</p>
+  <div class="cert-name">${studentName.value}</div>
+  <p>for excellent effort in English speaking practice</p>
+  <div class="star">${"⭐".repeat(star)}</div>
+  <div class="cert-footer">
+   By Mrs Tran Thi Kim Yen and Mrs Pham Thi Ngoc Bich
+  </div>
+ </div>`;
+}
+</script>
+
+</body>
+</html>
